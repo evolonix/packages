@@ -14,10 +14,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {
-      "@evolonix/rsm": ["packages/rsm/core/src/index.ts"],
-      "@evolonix/rsm-react": ["packages/rsm/react/src/index.ts"]
-    }
+    "paths": {}
   },
   "exclude": ["node_modules", "tmp"]
 }
