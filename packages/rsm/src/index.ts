@@ -1,1 +1,1 @@
-export * from './lib/rsm';
+export * from './lib';
