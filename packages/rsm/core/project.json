@@ -1,17 +1,17 @@
 {
-  "name": "rsm",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/rsm/src",
+  "name": "rsm-core",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/rsm/core/src",
   "projectType": "library",
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/rsm",
-        "main": "packages/rsm/src/index.ts",
-        "tsConfig": "packages/rsm/tsconfig.lib.json",
-        "assets": ["packages/rsm/*.md"]
+        "outputPath": "dist/packages/rsm/core",
+        "main": "packages/rsm/core/src/index.ts",
+        "tsConfig": "packages/rsm/core/tsconfig.lib.json",
+        "assets": ["packages/rsm/core/*.md"]
       }
     },
     "nx-release-publish": {

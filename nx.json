@@ -1,4 +1,9 @@
 {
+  "pluginsConfig": {
+    "@nx/js": {
+      "analyzeSourceFiles": true
+    }
+  },
   "extends": "nx/presets/npm.json",
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "nxCloudAccessToken": "OWFhMjNkYTMtNzhlMS00ZDQ0LTg5OTMtODZjYWU0ZDU5ZWUxfHJlYWQtd3JpdGU=",
@@ -32,9 +37,11 @@
       }
     }
   ],
-  "pluginsConfig": {
-    "@nx/js": {
-      "analyzeSourceFiles": true
+  "generators": {
+    "@nx/react": {
+      "library": {
+        "unitTestRunner": "vitest"
+      }
     }
   }
 }
