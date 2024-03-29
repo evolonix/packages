@@ -1,38 +1,38 @@
-import { Link, Route, Routes } from 'react-router-dom';
+import { NavLink, Route, Routes } from 'react-router-dom';
+import { Home } from './home/home';
+import { Widgets } from './widgets/widgets';
+
+const navigation = [
+  { to: '/', name: 'Home' },
+  { to: '/widgets', name: 'Widgets' },
+];
 
 export function App() {
   return (
-    <div>
+    <div className="p-4">
       <div role="navigation">
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/page-2">Page 2</Link>
-          </li>
+        <ul className="flex items-center gap-4">
+          {navigation.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                className={({ isActive }) =>
+                  isActive ? 'text-green-600 hover:text-green-700' : ''
+                }
+              >
+                {item.name}
+              </NavLink>
+            </li>
+          ))}
         </ul>
       </div>
 
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to="/page-2">Click here for page 2.</Link>
-            </div>
-          }
-        />
-        <Route
-          path="/page-2"
-          element={
-            <div>
-              <Link to="/">Click here to go back to root page.</Link>
-            </div>
-          }
-        />
-      </Routes>
+      <main className="mt-4">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/widgets" element={<Widgets />} />
+        </Routes>
+      </main>
     </div>
   );
 }

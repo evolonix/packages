@@ -1,7 +1,7 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   root: __dirname,
@@ -26,6 +26,7 @@ export default defineConfig({
 
   build: {
     outDir: '../../../dist/apps/example-react-app',
+    emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
       transformMixedEsModules: true,
@@ -34,9 +35,6 @@ export default defineConfig({
 
   test: {
     globals: true,
-    cache: {
-      dir: '../../../node_modules/.vitest',
-    },
     environment: 'jsdom',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 
@@ -45,5 +43,7 @@ export default defineConfig({
       reportsDirectory: '../../../coverage/apps/example-react-app',
       provider: 'v8',
     },
+
+    passWithNoTests: true,
   },
 });

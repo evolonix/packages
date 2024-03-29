@@ -6,7 +6,7 @@ import dts from 'vite-plugin-dts';
 
 export default defineConfig({
   root: __dirname,
-  cacheDir: '../../../node_modules/.vite/packages/rsm',
+  cacheDir: '../../../node_modules/.vite/packages/rsm/core',
 
   plugins: [
     nxViteTsPaths(),
@@ -48,15 +48,12 @@ export default defineConfig({
 
   test: {
     globals: true,
-    cache: {
-      dir: '../../../node_modules/.vitest',
-    },
     environment: 'node',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
 
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../../coverage/packages/rsm',
+      reportsDirectory: '../../../coverage/packages/rsm/core',
       provider: 'v8',
     },
 
