@@ -20,6 +20,8 @@ export type StoreState = {
   isLoading?: boolean; // if busy
   isReady: boolean; // state == 'success'
   forceSkeleton?: boolean; // if we want to force the skeleton to show
+  forceLoading?: boolean; // if we want to force the loading status after the data is loaded
+  forceEmpty?: boolean; // if we want to force the no data status
 };
 
 export function initStoreState(): StoreState {
@@ -29,6 +31,8 @@ export function initStoreState(): StoreState {
     isLoading: false,
     isReady: false,
     forceSkeleton: false,
+    forceLoading: false,
+    forceEmpty: false,
   };
 }
 
@@ -40,7 +44,7 @@ export declare type StatusState =
   | InitializingState
   | PendingState
   | SuccessState
-  | ErrorState;
+  | Omit<ErrorState, 'errors'>;
 export interface SuccessState {
   value: 'success';
 }
@@ -74,20 +78,31 @@ export function trackStatusWith<T extends StoreState>(
     waitForId?: string,
   ): Promise<T> =>
     waitFor(async () => {
-      if (get().forceSkeleton) return get();
+      // showSkeleton will be true if we are initializing
 
-      // Track isLoading state
-      set(updateRequestStatus('pending'));
+      // Track isLoading status
+      // showSkeleton will still be true if we are transitioning from initializing to pending
+      set(updateRequestStatus<T>('pending'));
+
+      if (get().forceSkeleton) return get();
 
       // Introduce a delay for the skeleton to display a minimum amount of time
       if (get().showSkeleton)
         await new Promise((resolve) => setTimeout(resolve, 450));
 
+      if (get().forceEmpty) {
+        set(updateRequestStatus<T>('success'));
+        return get();
+      }
+
       try {
         // Trigger async action
         const updates = await action();
+
         // Update status
-        const withUpdatedRequestStatus = updateRequestStatus<T>('success');
+        const withUpdatedRequestStatus = get().forceLoading
+          ? updateRequestStatus<T>('pending')
+          : updateRequestStatus<T>('success');
         // Update with action data AND updated status
         set((state: T) => withUpdatedRequestStatus({ ...state, ...updates }));
       } catch (error) {
@@ -146,9 +161,9 @@ export function updateRequestStatus<T extends StoreState>(
 // ****************************************************
 
 function resolveStatus(flag: StatusState['value'], errors?: RestErrors) {
-  const newStatus = {
+  const newStatus: StatusState = {
     value: flag,
-  } as StatusState;
+  };
 
   if (flag === 'error') {
     newStatus.value = 'error';

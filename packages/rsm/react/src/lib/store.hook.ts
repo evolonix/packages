@@ -16,14 +16,26 @@ export const useZustandStore = <ViewModel = unknown, Slice = ViewModel>(
   store: StoreApi<ViewModel>,
   selector?: Selector<ViewModel, Slice>,
 ) => {
-  // const [params] = useSearchParams();
-
-  // Enable override from URL to force showing skeletons
+  // Enable override from URL to force showing skeleton
   const pickFn = useCallback(
     (state: ViewModel) => {
-      // const forceSkeletons =
-      //   params.has('showSkeleton') && params.get('showSkeleton') === 'true';
-      // if (forceSkeletons) state = { ...state, showSkeleton: true };
+      const { search } = window.location;
+      const searchParams = new URLSearchParams(search);
+
+      const forceSkeleton =
+        searchParams.has('forceSkeleton') &&
+        searchParams.get('forceSkeleton') === 'true';
+      if (forceSkeleton) state = { ...state, forceSkeleton: true };
+
+      const forceLoading =
+        searchParams.has('forceLoading') &&
+        searchParams.get('forceLoading') === 'true';
+      if (forceLoading) state = { ...state, forceLoading: true };
+
+      const forceEmpty =
+        searchParams.has('forceEmpty') &&
+        searchParams.get('forceEmpty') === 'true';
+      if (forceEmpty) state = { ...state, forceEmpty: true };
 
       const fallback = IDENTITY_SELECTOR as SliceSelector<
         StoreApi<ViewModel>,
@@ -33,7 +45,6 @@ export const useZustandStore = <ViewModel = unknown, Slice = ViewModel>(
 
       return fn(state);
     },
-    // [params, selector],
     [selector],
   );
 

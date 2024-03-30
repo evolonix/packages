@@ -19,34 +19,6 @@ const allWidgets = async (): Promise<Widget[]> => {
   return storedWidgets;
 };
 
-// Read
-export async function getWidgets(
-  query = '',
-  sortKey = 'name',
-  sortDirection = 'asc',
-): Promise<Widget[]> {
-  await fakeNetwork(`widgets:${query}`);
-
-  let widgets = await allWidgets();
-  if (query) {
-    widgets = matchSorter(widgets, query, { keys: ['name'] });
-  }
-
-  return widgets.sort(
-    sortBy(sortDirection === 'asc' ? `${sortKey}` : `-${sortKey}`),
-  );
-}
-
-// Read
-export async function getWidget(id: string): Promise<Widget | null> {
-  await fakeNetwork(`widget:${id}`);
-
-  const widgets = await allWidgets();
-  const widget = widgets.find((widget) => widget.id === id);
-
-  return widget ?? null;
-}
-
 // Create
 export async function createWidget(
   partial: Omit<Widget, 'id' | 'createdAt'>,
@@ -54,29 +26,15 @@ export async function createWidget(
   await fakeNetwork();
 
   const widgets = await allWidgets();
-  const newWidget = {
-    id: faker.string.uuid(),
+  const newWidget: Widget = {
     ...partial,
     createdAt: Date.now(),
-  } satisfies Widget;
+    id: faker.string.uuid(),
+  };
   // Add new widget to the end of the list
   await set([...widgets, newWidget]);
 
   return newWidget;
-}
-
-// Update
-export async function updateWidget(updated: Widget): Promise<Widget> {
-  await fakeNetwork();
-
-  const widgets = await allWidgets();
-  const existing = widgets.find((widget) => widget.id === updated.id);
-  if (!existing) throw new Error(`No widget found for ${updated.id}`);
-
-  updated = { ...existing, ...updated };
-  await set(widgets.map((it) => (it.id === updated.id ? updated : it)));
-
-  return updated;
 }
 
 // Delete
@@ -93,6 +51,51 @@ export async function deleteWidget(id: string): Promise<boolean> {
   }
 
   return false;
+}
+
+// Read
+export async function getWidget(id: string): Promise<Widget | null> {
+  await fakeNetwork(`widget:${id}`);
+
+  const widgets = await allWidgets();
+  const widget = widgets.find((widget) => widget.id === id);
+
+  return widget ?? null;
+}
+
+// Read
+export async function getWidgets(
+  query = '',
+  sortKey = 'name',
+  sortDirection = 'asc',
+): Promise<Widget[]> {
+  await fakeNetwork(`widgets:${query}`);
+
+  let widgets = await allWidgets();
+  if (query) {
+    widgets = matchSorter(widgets, query, {
+      keys: ['name', 'description'],
+      threshold: matchSorter.rankings.CONTAINS,
+    });
+  }
+
+  return widgets.sort(
+    sortBy(sortDirection === 'asc' ? `${sortKey}` : `-${sortKey}`),
+  );
+}
+
+// Update
+export async function updateWidget(updated: Widget): Promise<Widget> {
+  await fakeNetwork();
+
+  const widgets = await allWidgets();
+  const existing = widgets.find((widget) => widget.id === updated.id);
+  if (!existing) throw new Error(`No widget found for ${updated.id}`);
+
+  updated = { ...existing, ...updated };
+  await set(widgets.map((it) => (it.id === updated.id ? updated : it)));
+
+  return updated;
 }
 
 function set(widgets: Widget[]) {
@@ -120,10 +123,10 @@ async function fakeNetwork(key = '') {
 
 export function createWidgetsService() {
   return {
-    getWidgets,
     createWidget,
-    getWidget,
-    updateWidget,
     deleteWidget,
+    getWidget,
+    getWidgets,
+    updateWidget,
   };
 }

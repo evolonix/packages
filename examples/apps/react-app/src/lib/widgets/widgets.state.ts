@@ -11,17 +11,17 @@ import { Widget } from './widgets.model';
 export interface WidgetsState extends StoreState {
   allWidgets: Widget[];
   searchQuery: string;
+  selectedWidgetId?: string;
   sortBy: string;
   sortDirection: 'asc' | 'desc';
-  selectedWidgetId?: string;
 }
 
 /**
  * Read-only values computed from existing/updated state
  */
 export interface WidgetsComputedState {
-  selectedWidget?: Widget;
   errors: string[];
+  selectedWidget?: Widget;
 }
 
 /**
@@ -30,14 +30,16 @@ export interface WidgetsComputedState {
  */
 export interface WidgetsApi {
   // Widgets RAVE (Remove, Add, View, Edit) - synonymous with CRUD
+  add: (
+    partial: Omit<Widget, 'id' | 'createdAt'>,
+  ) => Promise<Widget | undefined>; // Add
+  edit: (widget: Widget, optimistic?: boolean) => Promise<Widget>; // Edit
+  findById: (id: string) => Promise<Widget | null>; // View
   loadAll: (
-    query?: string,
+    searchQuery?: string,
     sortBy?: string,
     sortDirection?: 'asc' | 'desc',
   ) => Promise<Widget[]>; // View
-  findById: (id: string) => Promise<Widget | null>; // View
-  add: (partial: Omit<Widget, 'id' | 'createdAt'>) => Promise<Widget>; // Add
-  edit: (widget: Widget, optimistic?: boolean) => Promise<Widget>; // Edit
   remove: (widget: Widget) => Promise<boolean>; // Remove
   select: (widget: Widget) => void;
 }

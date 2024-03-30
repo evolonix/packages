@@ -1,48 +1,40 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { SearchInput } from '../../components';
 import { useWidgets } from '../../lib/widgets';
-import { WidgetsList, WidgetsSkeleton } from './components';
+import { WidgetList } from './components';
 
 export const Widgets = () => {
-  const [
-    { showSkeleton, allWidgets },
-    {
-      isSorting,
-      isAdding,
-      isEditing,
-      isRemoving,
-      isSelected,
-      handleSelect,
-      handleAdd,
-      handleEdit,
-      handleRemove,
-    },
-  ] = useWidgets();
+  const [{ isLoading, searchQuery }, { handleSearch, isSearching }] =
+    useWidgets(true, ({ isLoading, searchQuery }) => ({
+      isLoading,
+      searchQuery,
+    }));
+  const navigate = useNavigate();
 
   return (
-    <div>
-      <div className="flex items-center gap-4">
-        <h1 className="flex-1">Widgets</h1>
-        <button type="button" className="btn" onClick={handleAdd}>
-          Add Widget
+    <>
+      <h1 className="mb-4">Widgets</h1>
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-4 sm:justify-between">
+        <SearchInput
+          autoFocus
+          className="w-full sm:max-w-sm"
+          isLoading={isLoading}
+          isSearching={isSearching}
+          searchQuery={searchQuery}
+          onSearch={handleSearch}
+        />
+
+        <button
+          className="btn-primary"
+          disabled={isLoading}
+          type="button"
+          onClick={() => navigate('/widgets/new')}
+        >
+          New
         </button>
       </div>
-      <div className="my-4 space-y-4">
-        {showSkeleton || isSorting ? (
-          <WidgetsSkeleton />
-        ) : (
-          <WidgetsList
-            widgets={allWidgets || []}
-            isAdding={isAdding}
-            isEditing={isEditing}
-            isRemoving={isRemoving}
-            isSelected={isSelected}
-            handleSelect={handleSelect}
-            handleEdit={handleEdit}
-            handleRemove={handleRemove}
-          />
-        )}
-      </div>
-      <Link to="/">Click here to go back to home page.</Link>
-    </div>
+
+      <WidgetList />
+    </>
   );
 };

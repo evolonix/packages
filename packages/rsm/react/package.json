@@ -1,6 +1,6 @@
 {
   "name": "@evolonix/rsm-react",
-  "version": "0.0.1",
+  "version": "0.0.0-development",
   "type": "module",
   "main": "./index.cjs",
   "types": "./index.d.ts",
@@ -9,5 +9,10 @@
       "import": "./index.js",
       "require": "./index.cjs"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evolonix/evolonix.git",
+    "directory": "packages/rsm/react"
   }
 }

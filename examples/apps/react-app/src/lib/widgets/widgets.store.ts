@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { StoreApi, createStore } from 'zustand/vanilla';
 
 import {
+  SetState,
   computeWith,
   getErrorMessages,
   initStoreState,
@@ -27,10 +28,10 @@ import {
  * These ACTIONS enable waitFor() to look up existing, async request (if any)
  */
 const ACTIONS = {
-  loadAll: () => 'widgets:loadAll',
-  findById: (id: string) => `widgets:findById:${id}`,
   add: () => `widgets:add`,
   edit: (id: string) => `widgets:edit:${id}`,
+  findById: (id: string) => `widgets:findById:${id}`,
+  loadAll: () => 'widgets:loadAll',
   remove: (id: string) => `widgets:remove:${id}`,
 };
 
@@ -50,14 +51,14 @@ export function buildWidgetsStore(): StoreApi<WidgetsViewModel> {
 
   // Calculate our computed properties
   const buildComputedFn = (state: WidgetsState): WidgetsComputedState => {
+    const errors = getErrorMessages(state);
     const selectedWidget = state.allWidgets.find(
       (it) => it.id === state.selectedWidgetId,
     );
-    const errors = getErrorMessages(state);
 
     return {
-      selectedWidget,
       errors,
+      selectedWidget,
     };
   };
 
@@ -65,66 +66,22 @@ export function buildWidgetsStore(): StoreApi<WidgetsViewModel> {
    * Factory to create a Zustand Reactive WidgetsStore; which emits a WidgetsViewModel
    */
   const configureStore = (
-    set: (
-      state:
-        | Partial<WidgetsState>
-        | ((state: WidgetsState) => Partial<WidgetsState>),
-    ) => void,
-    get: () => WidgetsState,
+    _: SetState<WidgetsViewModel>,
+    get: () => WidgetsViewModel,
     store: StoreApi<WidgetsViewModel>,
   ): WidgetsViewModel => {
-    set = computeWith(buildComputedFn, store);
+    const set = computeWith(buildComputedFn, store);
 
     const trackStatus = trackStatusWith(set, get);
 
     const state: WidgetsState = initState();
     const computed: WidgetsComputedState = buildComputedFn(state);
     const api: WidgetsApi = {
-      loadAll: async (
-        query?: string,
-        sortBy?: string,
-        sortDirection?: 'asc' | 'desc',
-      ): Promise<Widget[]> => {
-        const { allWidgets } = await trackStatus(async () => {
-          const sortKey = sortBy ?? get().sortBy;
-          sortDirection =
-            sortDirection ??
-            (sortBy
-              ? sortBy === get().sortBy && get().sortDirection === 'asc'
-                ? 'desc'
-                : 'asc'
-              : get().sortDirection);
-          const allWidgets = await service.getWidgets(
-            query,
-            sortKey,
-            sortDirection,
-          );
-
-          return {
-            allWidgets,
-            searchQuery: query || '',
-            sortBy: sortKey,
-            sortDirection,
-          };
-        }, ACTIONS.loadAll());
-
-        return allWidgets;
-      },
-      findById: async (id: string): Promise<Widget | null> => {
-        const widget = await waitFor<Widget | null>(
-          () => service.getWidget(id),
-          ACTIONS.findById(id),
-        );
-
-        return widget;
-      },
       add: async (
         partial: Omit<Widget, 'id' | 'createdAt'>,
-      ): Promise<Widget> => {
-        let created = partial as Widget;
-
-        await trackStatus(async () => {
-          created = await service.createWidget(partial);
+      ): Promise<Widget | undefined> => {
+        const { allWidgets, selectedWidgetId } = await trackStatus(async () => {
+          const created = await service.createWidget(partial);
           const { allWidgets } = await get();
 
           return {
@@ -134,8 +91,9 @@ export function buildWidgetsStore(): StoreApi<WidgetsViewModel> {
           };
         }, ACTIONS.add());
 
-        return created;
+        return allWidgets.find((it) => it.id === selectedWidgetId);
       },
+
       edit: async (widget: Widget, optimistic = false): Promise<Widget> => {
         let updated = widget;
 
@@ -158,6 +116,47 @@ export function buildWidgetsStore(): StoreApi<WidgetsViewModel> {
 
         return updated;
       },
+
+      findById: async (id: string): Promise<Widget | null> => {
+        const widget = await waitFor<Widget | null>(
+          () => service.getWidget(id),
+          ACTIONS.findById(id),
+        );
+
+        return widget;
+      },
+
+      loadAll: async (
+        searchQuery?: string,
+        sortBy?: string,
+        sortDirection?: 'asc' | 'desc',
+      ): Promise<Widget[]> => {
+        const { allWidgets } = await trackStatus(async () => {
+          const sortKey = sortBy ?? get().sortBy;
+          sortDirection =
+            sortDirection ??
+            (sortBy
+              ? sortBy === get().sortBy && get().sortDirection === 'asc'
+                ? 'desc'
+                : 'asc'
+              : get().sortDirection);
+          const allWidgets = await service.getWidgets(
+            searchQuery,
+            sortKey,
+            sortDirection,
+          );
+
+          return {
+            allWidgets,
+            searchQuery,
+            sortBy: sortKey,
+            sortDirection,
+          };
+        }, ACTIONS.loadAll());
+
+        return allWidgets;
+      },
+
       remove: async (widget: Widget): Promise<boolean> => {
         let deleted = false;
 
@@ -175,6 +174,7 @@ export function buildWidgetsStore(): StoreApi<WidgetsViewModel> {
 
         return deleted;
       },
+
       select: (widget: Widget) => {
         set({ selectedWidgetId: widget.id });
       },
@@ -226,27 +226,41 @@ export const store = () => {
 // *******************************************************************
 
 export interface WidgetsUrlParams {
+  direction?: 'asc' | 'desc';
+  forceEmpty?: boolean;
+  forceLoading?: boolean;
+  forceSkeleton?: boolean;
+  id?: string;
   q?: string;
   sort?: string;
-  direction?: 'asc' | 'desc';
-  id?: string;
-  forceSkeleton?: boolean;
 }
-export const syncUrlWithStore = (state?: WidgetsViewModel) => {
-  const defaultState: WidgetsState = initState();
+
+export const syncUrlWithStore = (state?: WidgetsState) => {
+  const defaultState = initState();
 
   state = state ?? store().getState();
-  const { searchQuery, sortBy, sortDirection, selectedWidgetId } = state;
+  const {
+    forceEmpty,
+    forceLoading,
+    forceSkeleton,
+    searchQuery,
+    selectedWidgetId,
+    sortBy,
+    sortDirection,
+  } = state;
+
   const { pathname } = window.location;
   const searchParams = new URLSearchParams({
+    ...(forceSkeleton ? { forceSkeleton: 'true' } : {}),
+    ...(forceLoading ? { forceLoading: 'true' } : {}),
+    ...(forceEmpty ? { forceEmpty: 'true' } : {}),
     ...(searchQuery ? { q: searchQuery } : {}),
+    // Only include the selectedWidgetId if it is not already in the URL as a path param
+    // ...(selectedWidgetId && !pathname.includes(`/widgets/${selectedWidgetId}`)
+    ...(selectedWidgetId ? { id: selectedWidgetId } : {}),
     ...(sortBy && sortBy !== defaultState.sortBy ? { sort: sortBy } : {}),
     ...(sortDirection && sortDirection !== defaultState.sortDirection
       ? { direction: sortDirection }
-      : {}),
-    // Only include the selectedWidgetId if it is not already in the URL as a path param
-    ...(selectedWidgetId && !pathname.includes(`/${selectedWidgetId}`)
-      ? { id: selectedWidgetId }
       : {}),
   });
 
@@ -257,17 +271,24 @@ export const syncUrlWithStore = (state?: WidgetsViewModel) => {
   }
 };
 
-const syncStoreWithUrl = async (_store: StoreApi<WidgetsViewModel>) => {
+const syncStoreWithUrl = async (store: StoreApi<WidgetsViewModel>) => {
   const { search } = window.location;
   const searchParams = new URLSearchParams(search);
+  const forceSkeleton = searchParams.get('forceSkeleton') ?? undefined;
+  const forceLoading = searchParams.get('forceLoading') ?? undefined;
+  const forceEmpty = searchParams.get('forceEmpty') ?? undefined;
   const searchQuery = searchParams.get('q') ?? undefined;
+  const selectedWidgetId = searchParams.get('id') ?? undefined;
   const sortBy = searchParams.get('sort') ?? undefined;
   const sortDirection = searchParams.get('direction') ?? undefined;
-  const selectedWidgetId = searchParams.get('id') ?? undefined;
-  const forceSkeleton = searchParams.get('forceSkeleton') ?? false;
 
-  const { getState: get, setState: set } = _store;
-  set({ selectedWidgetId, forceSkeleton: Boolean(forceSkeleton) });
+  const { getState: get, setState: set } = store;
+  set({
+    forceSkeleton: forceSkeleton === 'true',
+    forceLoading: forceLoading === 'true',
+    forceEmpty: forceEmpty === 'true',
+    selectedWidgetId,
+  });
 
   if (searchQuery || sortBy || sortDirection) {
     get().loadAll(
