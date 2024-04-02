@@ -1,0 +1,9 @@
+{
+  "name": "rsm-react",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/rsm/react/src",
+  "projectType": "library",
+  "tags": ["scope:rsm", "type:data-access"],
+  "// targets": "to see all targets run: nx show project rsm-react --web",
+  "targets": {}
+}

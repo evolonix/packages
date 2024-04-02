@@ -1,0 +1,9 @@
+{
+  "name": "example-react-app",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "examples/apps/react-app/src",
+  "projectType": "application",
+  "tags": ["scope:examples", "type:app"],
+  "// targets": "to see all targets run: nx show project example-react-app --web",
+  "targets": {}
+}
