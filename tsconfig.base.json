@@ -17,7 +17,8 @@
     "paths": {
       "@evolonix/di": ["packages/di/src/index.ts"],
       "@evolonix/rsm-core": ["packages/rsm/core/src/index.ts"],
-      "@evolonix/rsm-react": ["packages/rsm/react/src/index.ts"]
+      "@evolonix/rsm-react": ["packages/rsm/react/src/index.ts"],
+      "@evolonix/tailwind": ["packages/tailwind/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
