@@ -14,3 +14,10 @@
 ### Tailwind CSS
 
 > packages/tailwind, @evolonix/tailwind
+
+## Example apps using these packages
+
+### React app with DI, RSM and Tailwind CSS
+
+> examples/react-app  
+> examples/react-app-e2e, Playwrite E2E tests for the React app
