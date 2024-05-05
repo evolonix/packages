@@ -1,1 +1,1 @@
-export * from './lib/rsm-react';
+export * from './lib';
