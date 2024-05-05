@@ -7,6 +7,7 @@
   "devDependencies": {
     "@babel/core": "^7.14.5",
     "@babel/preset-react": "^7.14.5",
+    "@evolonix/tailwind": "file:packages/tailwind",
     "@nx/devkit": "18.3.4",
     "@nx/eslint": "18.3.4",
     "@nx/eslint-plugin": "18.3.4",

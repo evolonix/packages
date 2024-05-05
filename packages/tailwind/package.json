@@ -2,7 +2,9 @@
   "name": "@evolonix/tailwind",
   "version": "0.0.1",
   "type": "module",
-  "dependencies": {},
+  "dependencies": {
+    "tailwindcss": "^3.4.3"
+  },
   "main": "./index.js",
   "module": "./index.mjs",
   "typings": "./index.d.ts"
