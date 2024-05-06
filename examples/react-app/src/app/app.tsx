@@ -1,3 +1,4 @@
+import { Button } from '@/components';
 import { Link, Route, Routes } from 'react-router-dom';
 
 export function App() {
@@ -22,10 +23,14 @@ export function App() {
         <Route
           path="/"
           element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to="/page-2">Click here for page 2.</Link>
-            </div>
+            <>
+              <div>
+                This is the generated root route.{' '}
+                <Link to="/page-2">Click here for page 2.</Link>
+              </div>
+
+              <Button>Test</Button>
+            </>
           }
         />
         <Route
