@@ -1,4 +1,4 @@
-import { Button } from '@/components';
+import { Button } from '@evolonix/ui';
 import { Link, Route, Routes } from 'react-router-dom';
 
 export function App() {
