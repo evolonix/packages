@@ -1,17 +1,12 @@
-import NxWelcome from './nx-welcome';
-
-import { Route, Routes, Link } from 'react-router-dom';
+import { Link, Route, Routes } from 'react-router-dom';
 
 export function App() {
   return (
-    <div>
-      <NxWelcome title="react-app" />
-
+    <div className="p-4">
       {/* START: routes */}
       {/* These routes and navigation have been generated for you */}
       {/* Feel free to move and update them to fit your needs */}
-      <br />
-      <hr />
+      <h1>Welcome react-app</h1>
       <br />
       <div role="navigation">
         <ul>
