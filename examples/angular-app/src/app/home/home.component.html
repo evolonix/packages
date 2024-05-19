@@ -1,0 +1,22 @@
+<div>
+  This is the generated root route.
+  <a routerLink="/about">Click here for page 2.</a>
+</div>
+
+<!-- <Button>Test</Button> -->
+
+<div class="grid-layout my-20" [style]="gridStyle">
+  <ng-container *ngFor="let item of items; let i = index">
+    <!--
+      [class]="'[grid-column:span_calc(12/var(--items-per-row))/span_calc(12/var(--items-per-row))]'"
+      [class]="'col-span-4 xl:col-span-3'"
+      [class]="itemClasses(i)"
+    -->
+    <div
+      class="ring-2 ring-secondary-500 rounded-lg p-4 grid place-content-center"
+      [class]="itemClasses(i)"
+    >
+      {{ item }}
+    </div>
+  </ng-container>
+</div>

@@ -20,4 +20,9 @@
 ### React app with DI, RSM and Tailwind CSS
 
 > examples/react-app  
-> examples/react-app-e2e, Playwrite E2E tests for the React app
+> examples/react-app-e2e, Playwright E2E tests for the React app
+
+### Angular app with RSM and Tailwind CSS
+
+> examples/angular-app  
+> examples/angular-app-e2e, Playwright E2E tests for the Angular app

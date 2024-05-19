@@ -12,7 +12,7 @@ export function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/page-2" element={<About />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </div>
   );
