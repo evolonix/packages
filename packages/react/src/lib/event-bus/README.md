@@ -89,7 +89,11 @@ export class OrderFacade {
   ordersItems$: Observable<OrderItem[]> = this.query.orderItems$;
   isLoading$ = this.query.selectLoading();
 
-  constructor(private store: OrderStore, private query: OrderQuery, private eventBus: EventBus) {
+  constructor(
+    private store: OrderStore,
+    private query: OrderQuery,
+    private eventBus: EventBus,
+  ) {
     this.query.order$.subscribe((order) => {
       if (order) {
         // Use the EventBus to announce order updates

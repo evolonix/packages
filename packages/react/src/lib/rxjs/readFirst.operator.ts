@@ -9,7 +9,10 @@ const NOOP: ReadSelector<any> = (s: any) => s;
 /**
  * Quick util to read 1st value emitted from BehaviorSubject/replay streams
  */
-export function readFirst<T>(source: Observable<any>, selector?: ReadSelector<T>): T {
+export function readFirst<T>(
+  source: Observable<any>,
+  selector?: ReadSelector<T>,
+): T {
   let result: T = '' as unknown as T;
   source?.pipe(first(), map(selector || NOOP)).subscribe((v) => (result = v));
   return result;
@@ -18,6 +21,9 @@ export function readFirst<T>(source: Observable<any>, selector?: ReadSelector<T>
 /**
  * For streams that will emit asynhronously
  */
-export function readFirstAsync<T>(source: Observable<any>, selector?: ReadSelector<T>): Promise<T> {
+export function readFirstAsync<T>(
+  source: Observable<any>,
+  selector?: ReadSelector<T>,
+): Promise<T> {
   return Promise.resolve(readFirst(source, selector));
 }

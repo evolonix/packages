@@ -39,7 +39,10 @@ describe('EventBus', () => {
 
   describe('event subscriptions', () => {
     it('should subscribe to an event', () => {
-      const unsubscribe: Unsubscribe = eventBus.on<unknown>(SESSION.STARTED, (session: unknown) => {});
+      const unsubscribe: Unsubscribe = eventBus.on<unknown>(
+        SESSION.STARTED,
+        (session: unknown) => {},
+      );
 
       expect(unsubscribe).toBeDefined();
     });
@@ -181,7 +184,9 @@ describe('EventBus', () => {
 
   describe('event stream observables', () => {
     it('should publish an observable for an event', () => {
-      const session$: Observable<number> = eventBus.observableFor<number>(SESSION.STARTED);
+      const session$: Observable<number> = eventBus.observableFor<number>(
+        SESSION.STARTED,
+      );
 
       expect(session$).toBeDefined();
       expect(session$.subscribe).toBeDefined();
@@ -189,7 +194,9 @@ describe('EventBus', () => {
 
     it('should stream subscribed events', () => {
       let value = 0;
-      const session$: Observable<number> = eventBus.observableFor<number>(SESSION.STARTED);
+      const session$: Observable<number> = eventBus.observableFor<number>(
+        SESSION.STARTED,
+      );
       const subscription = session$.subscribe((data) => (value = data));
 
       expect(value).toBe(0);

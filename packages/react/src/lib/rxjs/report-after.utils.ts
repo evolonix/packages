@@ -22,7 +22,10 @@ import { catchError, finalize, map, tap } from 'rxjs/operators';
  *  }
  *
  */
-export const reportBefore = <T = any>(target$: Observable<T>, reportStarting: () => void): Observable<T> => {
+export const reportBefore = <T = any>(
+  target$: Observable<T>,
+  reportStarting: () => void,
+): Observable<T> => {
   return defer(() => {
     reportStarting(); // when suscription starts
     return target$;
@@ -32,11 +35,14 @@ export const reportBefore = <T = any>(target$: Observable<T>, reportStarting: ()
 /**
  * Trigger observable activity and report each value emitted from the stream
  */
-export const reportEach = <T = any, K = any>(target$: Observable<T>, notifyCallback: (response?: T) => K | T): Observable<T | K> => {
+export const reportEach = <T = any, K = any>(
+  target$: Observable<T>,
+  notifyCallback: (response?: T) => K | T,
+): Observable<T | K> => {
   return target$.pipe(
     map((value) => {
       return notifyCallback(value) || value;
-    })
+    }),
   );
 };
 
@@ -60,7 +66,10 @@ export const reportEach = <T = any, K = any>(target$: Observable<T>, notifyCallb
  * }
  *
  */
-export const reportAfter = <T = any, K = any>(target$: Observable<T>, reportDone: (lastValue?: T) => K | T): Observable<T | K> => {
+export const reportAfter = <T = any, K = any>(
+  target$: Observable<T>,
+  reportDone: (lastValue?: T) => K | T,
+): Observable<T | K> => {
   let lastValue: T;
 
   return target$.pipe(
@@ -69,6 +78,6 @@ export const reportAfter = <T = any, K = any>(target$: Observable<T>, reportDone
       lastValue = error;
       return of(error);
     }),
-    finalize(() => reportDone(lastValue))
+    finalize(() => reportDone(lastValue)),
   );
 };

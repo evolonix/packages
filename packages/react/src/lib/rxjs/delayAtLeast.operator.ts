@@ -18,7 +18,7 @@ export function delayAtLeast<T>(delayBy: number) {
           const calculatedDelay = Math.max(delayBy - (Date.now() - start), 0);
 
           return timer(calculatedDelay);
-        })
+        }),
       );
     });
   };
