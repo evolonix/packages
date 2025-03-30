@@ -4,10 +4,11 @@ import react from '@vitejs/plugin-react';
 import * as path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/packages/di',
+  cacheDir: '../../node_modules/.vite/packages/react',
 
   plugins: [
     react(),
@@ -15,6 +16,14 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
+    }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'package.json',
+          dest: '',
+        },
+      ],
     }),
   ],
 
@@ -26,7 +35,7 @@ export default defineConfig({
   // Configuration for building your library.
   // See: https://vitejs.dev/guide/build.html#library-mode
   build: {
-    outDir: '../../dist/packages/di',
+    outDir: '../../dist/packages/react',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
@@ -35,7 +44,7 @@ export default defineConfig({
     lib: {
       // Could also be a dictionary or array of multiple entry points.
       entry: 'src/index.ts',
-      name: 'di',
+      name: 'react',
       fileName: 'index',
       // Change this to the formats you want to support.
       // Don't forget to update your package.json as well.
@@ -54,7 +63,7 @@ export default defineConfig({
 
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../coverage/packages/di',
+      reportsDirectory: '../../coverage/packages/react',
       provider: 'v8',
     },
 

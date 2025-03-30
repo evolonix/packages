@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import * as path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   root: __dirname,
@@ -15,6 +16,14 @@ export default defineConfig({
     dts({
       entryRoot: 'src',
       tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
+    }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'package.json',
+          dest: '',
+        },
+      ],
     }),
   ],
 
