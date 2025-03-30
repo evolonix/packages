@@ -6,10 +6,25 @@ import { StoreState } from './store.state';
 // Computed State Helpers
 // *****************************************************
 
-export type SetState<T> = (
-  partial: T | Partial<T> | ((state: T) => T | Partial<T>),
-  replace?: boolean,
-) => void;
+export type SetState<T> = {
+  _(
+    partial:
+      | T
+      | Partial<T>
+      | {
+          _(state: T): T | Partial<T>;
+        }['_'],
+    replace?: false,
+  ): void;
+  _(
+    state:
+      | T
+      | {
+          _(state: T): T;
+        }['_'],
+    replace: true,
+  ): void;
+}['_'];
 export type ComputedState<T extends StoreState, U = unknown> = (state: T) => U;
 
 /**
