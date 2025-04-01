@@ -1,6 +1,6 @@
 {
   "name": "@evolonix/react",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -14,5 +14,13 @@
     "type": "git",
     "url": "git+https://github.com/evolonix/packages.git",
     "directory": "packages/react"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "zustand": "^5.0.3",
+    "immer": "^10.1.1"
   }
 }
