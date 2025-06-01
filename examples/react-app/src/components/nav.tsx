@@ -3,7 +3,7 @@ import { Link } from '@evolonix/ui';
 export const Nav = () => {
   return (
     <div role="navigation">
-      <ul>
+      <ul className="flex gap-2">
         <li>
           <Link to="/">Home</Link>
         </li>

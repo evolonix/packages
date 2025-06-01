@@ -15,9 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@evolonix/di": ["packages/react/src/index.ts"],
-      "@evolonix/rsm-core": ["packages/rsm/core/src/index.ts"],
-      "@evolonix/rsm-react": ["packages/rsm/react/src/index.ts"],
+      "@evolonix/react": ["packages/react/src/index.ts"],
       "@evolonix/tailwind": ["packages/tailwind/src/index.ts"],
       "@evolonix/ui": ["packages/ui/src/index.ts"]
     }
