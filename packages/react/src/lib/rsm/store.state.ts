@@ -63,6 +63,8 @@ export interface ErrorState {
  * With 'ready' async action:
  *  -  update loading status
  *  -  trigger async action
+ *  -  optionally wait for a specific id
+ *  -  optionally wait for a minimum time to show skeleton
  *  -  update with action data AND updated status
  */
 export function trackStatusWith<T extends StoreState>(
@@ -71,9 +73,18 @@ export function trackStatusWith<T extends StoreState>(
 ) {
   return async (
     action: () => Promise<Partial<T>>,
-    waitForId?: string,
-  ): Promise<T> =>
-    waitFor(async () => {
+    options: { minimumWaitTime?: number; waitForId?: string },
+  ): Promise<T> => {
+    const defaultOptions = {
+      minimumWaitTime: 450, // Minimum time to show skeleton
+      waitForId: 'default', // Default waitForId
+    };
+    const { minimumWaitTime, waitForId } = {
+      ...defaultOptions,
+      ...options,
+    };
+
+    return waitFor(async () => {
       if (get().forceSkeleton) return get();
 
       // Track isLoading state
@@ -81,7 +92,7 @@ export function trackStatusWith<T extends StoreState>(
 
       // Introduce a delay for the skeleton to display a minimum amount of time
       if (get().showSkeleton)
-        await new Promise((resolve) => setTimeout(resolve, 450));
+        await new Promise((resolve) => setTimeout(resolve, minimumWaitTime));
 
       try {
         // Trigger async action
@@ -101,6 +112,7 @@ export function trackStatusWith<T extends StoreState>(
 
       return get();
     }, waitForId);
+  };
 }
 
 export const getRequestStatus = (state: StoreState) => {
