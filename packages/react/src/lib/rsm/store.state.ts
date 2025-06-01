@@ -20,16 +20,19 @@ export type StoreState = {
   isLoading?: boolean; // if busy
   isReady: boolean; // state == 'success'
   forceSkeleton?: boolean; // if we want to force the skeleton to show
+
+  [key: string]: unknown; // Additional properties from implemented store
 };
 
-export function initStoreState(): StoreState {
+export function initStoreState<S extends StoreState>(state?: Partial<S>): S {
   return {
     requestStatus: { value: 'initializing' },
     showSkeleton: true,
     isLoading: false,
     isReady: false,
     forceSkeleton: false,
-  };
+    ...state,
+  } as S;
 }
 
 // ****************************************************

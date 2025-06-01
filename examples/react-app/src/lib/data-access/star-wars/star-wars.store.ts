@@ -25,13 +25,13 @@ export function buildStarWarsStore(
     set: SetState<StarWarsViewModel>,
     get: () => StarWarsViewModel,
   ) => {
-    const state = initStoreState();
+    const state = initStoreState<StarWarsState>({
+      // Initial state
+      starships: [],
+    });
 
     return {
       ...state,
-
-      // Initial state
-      starships: [] as Starship[],
 
       // Actions
       loadStarships: async () => {
