@@ -25,10 +25,11 @@ export function buildStarWarsStore(
     set: SetState<StarWarsViewModel>,
     get: () => StarWarsViewModel,
   ) => {
-    const state = initStoreState<StarWarsState>({
+    const state: StarWarsState = {
+      ...initStoreState(),
       // Initial state
       starships: [],
-    });
+    };
 
     return {
       ...state,
@@ -60,7 +61,9 @@ export function buildStarWarsStore(
 
         const starship = get().starships.find((s) => s.id === id);
         if (starship) {
-          set({ selectedStarship: starship });
+          set((draft) => {
+            draft.selectedStarship = starship;
+          });
           return;
         }
 

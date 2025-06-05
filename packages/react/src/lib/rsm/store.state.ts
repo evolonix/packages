@@ -1,3 +1,4 @@
+import { SetState } from './store.computed';
 import { waitFor } from './store.utils';
 
 export type RestErrorMessage = { memberNames?: string[]; errorMessage: string };
@@ -24,15 +25,14 @@ export type StoreState = {
   [key: string]: unknown; // Additional properties from implemented store
 };
 
-export function initStoreState<S extends StoreState>(state?: Partial<S>): S {
+export function initStoreState(): StoreState {
   return {
     requestStatus: { value: 'initializing' },
     showSkeleton: true,
     isLoading: false,
     isReady: false,
     forceSkeleton: false,
-    ...state,
-  } as S;
+  };
 }
 
 // ****************************************************
@@ -71,7 +71,7 @@ export interface ErrorState {
  *  -  update with action data AND updated status
  */
 export function trackStatusWith<T extends StoreState>(
-  set: (state: Partial<T> | ((state: T) => Partial<T>)) => void,
+  set: SetState<T>,
   get: () => T,
 ) {
   return async (
