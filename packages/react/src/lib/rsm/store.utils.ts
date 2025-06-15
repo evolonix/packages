@@ -17,7 +17,8 @@ export const waitFor = async <T, U = T>(
   return results as U;
 };
 
-export const isWaitingFor = (id: string) => !!requests$[id];
+export const waitForAnother = (id: string) =>
+  requests$[id] ?? Promise.resolve();
 
 export function upsert<T extends { id: string }>(item: T, target: T[]) {
   const existing = target.find((it) => it.id === item.id);

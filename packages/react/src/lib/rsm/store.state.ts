@@ -1,39 +1,46 @@
-import { SetState } from './store.computed';
-import { waitFor } from './store.utils';
+import { StoreApi } from 'zustand';
 
-export type RestErrorMessage = { memberNames?: string[]; errorMessage: string };
-export type RestErrors = RestErrorMessage[];
+import { waitFor } from './store.utils';
 
 // ****************************************************
 // Store State
 // ****************************************************
-
-type Errors = { errors?: RestErrors };
 
 /**
  * Selector to quickly determine isLoading state
  */
 export type StoreState = {
   requestStatus: StatusState;
+  errors: Error[];
 
   // These are computed values based on request status
-  showSkeleton?: boolean; // if not initialized or transitioning to loading
-  isLoading?: boolean; // if busy
+  showSkeleton: boolean; // if not initialized or transitioning to loading, state == 'initializing' or 'pending'
+  isLoading: boolean; // if busy, state == 'pending'
   isReady: boolean; // state == 'success'
-  forceSkeleton?: boolean; // if we want to force the skeleton to show
-
-  [key: string]: unknown; // Additional properties from implemented store
+  hasErrors: boolean; // state == 'error'
+  forceSkeleton: boolean; // if we want to force the skeleton to show
 };
 
-export function initStoreState(): StoreState {
-  return {
+export const initStoreState = <T extends StoreState>(
+  get: () => T,
+  initialState?: Partial<T>,
+): T => {
+  const defaultState = {
     requestStatus: { value: 'initializing' },
+    errors: [],
     showSkeleton: true,
     isLoading: false,
     isReady: false,
+    hasErrors: false,
     forceSkeleton: false,
   };
-}
+
+  return {
+    ...defaultState,
+    ...initialState,
+    ...get(),
+  } as unknown as T;
+};
 
 // ****************************************************
 // Status State
@@ -55,7 +62,6 @@ export interface InitializingState {
 }
 export interface ErrorState {
   value: 'error';
-  errors: RestErrors;
 }
 
 // ****************************************************
@@ -70,19 +76,19 @@ export interface ErrorState {
  *  -  optionally wait for a minimum load time
  *  -  update with action data AND updated status
  */
-export function trackStatusWith<T extends StoreState>(
-  set: SetState<T>,
-  get: () => T,
-) {
+export function trackStatusWith<T extends StoreState>({
+  setState: set,
+  getState: get,
+}: StoreApi<T>) {
   return async (
     action: () => Promise<Partial<T>>,
-    options: { minimumWaitTime?: number; waitForId?: string },
+    options: { waitForId?: string; minimumWaitTime?: number },
   ): Promise<T> => {
     const defaultOptions = {
-      minimumWaitTime: 450, // Minimum load time
       waitForId: 'default', // Default waitForId
+      minimumWaitTime: 450, // Minimum load time
     };
-    const { minimumWaitTime, waitForId } = {
+    const { waitForId, minimumWaitTime } = {
       ...defaultOptions,
       ...options,
     };
@@ -91,25 +97,31 @@ export function trackStatusWith<T extends StoreState>(
       if (get().forceSkeleton) return get();
 
       // Track isLoading state
-      set(updateRequestStatus('pending'));
+      set(updateRequestStatus<T>('pending'));
 
       // Introduce a delay for loading a minimum amount of time
-      if (get().isLoading)
+      if (get().showSkeleton)
         await new Promise((resolve) => setTimeout(resolve, minimumWaitTime));
 
       try {
         // Trigger async action
         const updates = await action();
         // Update status
-        const withUpdatedRequestStatus = updateRequestStatus<T>('success');
+        const hasErrors = updates.errors && updates.errors.length > 0;
+        const withUpdatedRequestStatus = updateRequestStatus<T>(
+          hasErrors ? 'error' : 'success',
+        );
         // Update with action data AND updated status
         set((state: T) => withUpdatedRequestStatus({ ...state, ...updates }));
-      } catch (error) {
-        console.error(error);
-
+      } catch (e) {
+        console.error(e);
+        const error = e instanceof Error ? e : new Error(String(e));
         const withUpdatedRequestStatus = updateRequestStatus<T>('error');
         set((state: T) =>
-          withUpdatedRequestStatus({ ...state, errors: [`${error}`] }),
+          withUpdatedRequestStatus({
+            ...state,
+            errors: [...(state.errors ?? []), error],
+          }),
         );
       }
 
@@ -122,27 +134,24 @@ export const getRequestStatus = (state: StoreState) => {
   return state.requestStatus;
 };
 
-export const getErrorMessages = (state: StoreState): string[] => {
-  const errors = (state.requestStatus as ErrorState).errors || [];
-  return errors.map((it) => (it as RestErrorMessage).errorMessage);
-};
-
 export const getIsInitializing = (s: StoreState) =>
   getRequestStatus(s).value === 'initializing';
 export const getIsLoading = (s: StoreState) =>
   getRequestStatus(s).value === 'pending';
 export const getIsReady = (s: StoreState) =>
   getRequestStatus(s).value === 'success';
+export const getHasErrors = (s: StoreState) =>
+  getRequestStatus(s).value === 'error';
 
 export function updateRequestStatus<T extends StoreState>(
   flag: 'initializing' | 'pending' | 'success' | 'error',
-  updates?: Partial<T> & Errors,
-) {
-  return (state: T): Partial<T> => {
+): (state: T) => Partial<T> {
+  return (state: T): T => {
     const wasInitializing = getIsInitializing(state);
     state = {
       ...state,
-      requestStatus: resolveStatus(flag, updates?.errors),
+      requestStatus: resolveStatus(flag),
+      errors: state.errors ?? [],
     };
 
     return {
@@ -152,6 +161,7 @@ export function updateRequestStatus<T extends StoreState>(
         getIsInitializing(state) || (wasInitializing && getIsLoading(state)),
       isLoading: getIsLoading(state),
       isReady: getIsReady(state),
+      hasErrors: getHasErrors(state),
     };
   };
 }
@@ -160,18 +170,10 @@ export function updateRequestStatus<T extends StoreState>(
 // Internal Status Utils
 // ****************************************************
 
-function resolveStatus(flag: StatusState['value'], errors?: RestErrors) {
+function resolveStatus(flag: StatusState['value']) {
   const newStatus = {
     value: flag,
   } as StatusState;
-
-  if (flag === 'error') {
-    newStatus.value = 'error';
-    (newStatus as ErrorState).errors = errors || [];
-
-    // Debugging
-    if (errors?.length) console.log(errors);
-  }
 
   return newStatus;
 }
