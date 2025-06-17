@@ -1,11 +1,5 @@
 /* eslint-disable */
-import {
-  DependencyInjector,
-  Provider,
-  Token,
-  TypeProvider,
-  UndoChanges,
-} from './injector.interfaces';
+import { DependencyInjector, Provider, Token, TypeProvider, UndoChanges } from "./injector.interfaces";
 
 /**
  * The 1st injector instance is considered the 'root' injector
@@ -19,12 +13,22 @@ export let rootInjector: DependencyInjector;
  * @returns
  */
 export const inject = <T = unknown>(token: Token): T => {
-  const result = rootInjector.get(token);
+  const result = rootInjector?.get(token);
   if (!result) {
     throw new Error(`Unable to inject ${String(token)}`);
   }
 
   return result;
+};
+
+/**
+ * Normally providers are statically registered with a makeInjector() call.
+ * To dynamically add providers to the root injector, use this function.
+ *
+ * NOTE: This is not a recommended practice, but is available for advanced use cases.
+ */
+export const addProviders = (registry: Provider[]): UndoChanges => {
+  return rootInjector?.addProviders(registry);
 };
 
 /**
@@ -34,24 +38,18 @@ export const inject = <T = unknown>(token: Token): T => {
  * NOTE: If only a class is registered (instead of a Provider), convert to it
  * for normalized usages
  */
-export function makeInjector(
-  registry: (Provider | TypeProvider)[],
-  parent?: DependencyInjector,
-): DependencyInjector {
-  const isParentDefined = typeof parent !== 'undefined';
+export function makeInjector(registry: (Provider | TypeProvider)[], parent?: DependencyInjector): DependencyInjector {
+  const isParentDefined = typeof parent !== "undefined";
 
   // Always use the Provider long-form to register, e.g
   // { provide: MyClazz, useClass: MyClazz } instead of MyClazz
-  const normalized = registry.map((it) => {
+  const normalized = registry.map(it => {
     const isProvider = !!(it as Provider).provide;
     return isProvider ? it : makeClassProvider(it);
   }) as Provider[];
 
   // Auto add root injector as parent unless the parent is already defined...
-  const instance = new Injector(
-    normalized,
-    isParentDefined ? parent : rootInjector,
-  );
+  const instance = new Injector(normalized, isParentDefined ? parent : rootInjector);
   !rootInjector && (rootInjector = instance);
 
   return instance;
@@ -66,7 +64,7 @@ class Injector implements DependencyInjector {
 
   constructor(
     private providers: Provider[] = [],
-    private parent?: DependencyInjector,
+    private parent?: DependencyInjector
   ) {
     this.addProviders(providers);
   }
@@ -98,8 +96,7 @@ class Injector implements DependencyInjector {
    * instance
    */
   instanceOf(token: Token): any {
-    const inst =
-      this.instanceFromRegistry(token) || this.instanceFromParents(token);
+    const inst = this.instanceFromRegistry(token) || this.instanceFromParents(token);
 
     if (!inst) {
       throw new Error(`Unable make instance of ${String(token)}`);
@@ -118,7 +115,7 @@ class Injector implements DependencyInjector {
   addProviders(registry: Provider[]): UndoChanges {
     const origProviders = [...this.providers];
     this.providers = mergeProviders(this.providers, registry);
-    registry.map((it) => this.singletons.delete(it.provide as object));
+    registry.map(it => this.singletons.delete(it.provide as object));
 
     return () => this.addProviders(origProviders);
   }
@@ -130,9 +127,7 @@ class Injector implements DependencyInjector {
    * with current level acting as overwrites
    */
   getFlatProviderTree(): Provider[] {
-    return !this.parent
-      ? [...this.providers]
-      : [...mergeProviders(this.parent.getFlatProviderTree(), this.providers)];
+    return !this.parent ? [...this.providers] : [...mergeProviders(this.parent.getFlatProviderTree(), this.providers)];
   }
 
   // *************************************************
@@ -149,10 +144,7 @@ class Injector implements DependencyInjector {
 
     const original = [...this.providers];
     try {
-      this.providers = mergeProviders(
-        this.getFlatProviderTree(),
-        this.providers,
-      );
+      this.providers = mergeProviders(this.getFlatProviderTree(), this.providers);
       return this.instanceFromRegistry(token);
     } finally {
       this.providers = original;
@@ -162,7 +154,7 @@ class Injector implements DependencyInjector {
    * Find last Provider registration (last one wins)
    */
   private findLastRegistration(token: Token, list: Provider[]) {
-    const registry = this.providers.filter((it) => it.provide === token);
+    const registry = this.providers.filter(it => it.provide === token);
     return registry.length ? registry[registry.length - 1] : null;
   }
 
@@ -174,8 +166,8 @@ class Injector implements DependencyInjector {
    * @param token Class, value, or factory
    */
   private findAndMakeInstance(token: Token): any {
-    const isString = typeof token === 'string';
-    const isNumber = !isString && typeof token === 'number';
+    const isString = typeof token === "string";
+    const isNumber = !isString && typeof token === "number";
 
     if (isString || isNumber) {
       return token;
@@ -193,23 +185,15 @@ class Injector implements DependencyInjector {
   private instanceFromRegistry(token: Token): any {
     const makeAndCache = this.findAndMakeInstance.bind(this);
     const provider = this.findLastRegistration(token, this.providers);
-    const deps =
-      provider && provider.deps ? provider.deps.map(makeAndCache) : [];
+    const deps = provider && provider.deps ? provider.deps.map(makeAndCache) : [];
 
     // const makeWithClazz = (clazz: any) => (clazz ? new clazz(...deps) : null);
-    const makeWithClazz = (clazz: any) =>
-      clazz
-        ? new (clazz.bind.apply(clazz, __doSpread.call(null, [void 0], deps)))()
-        : null; // eslint-disable-line prefer-spread
-    const makeWithFactory = (fn?: (...args: any[]) => any) =>
-      fn ? fn.apply(null, deps) : null; // eslint-disable-line prefer-spread
+    const makeWithClazz = (clazz: any) => (clazz ? new (clazz.bind.apply(clazz, __doSpread.call(null, [void 0], deps)))() : null);
+    const makeWithFactory = (fn?: (...args: any[]) => any) => (fn ? fn.apply(null, deps) : null);
 
     return (
       provider &&
-      (provider.useValue ||
-        makeWithClazz(provider.useClass) ||
-        makeWithFactory(provider.useFactory) ||
-        makeWithClazz(provider.provide)) // fallback uses the token as a `class`
+      (provider.useValue || makeWithClazz(provider.useClass) || makeWithFactory(provider.useFactory) || makeWithClazz(provider.provide)) // fallback uses the token as a `class`
     );
   }
 }
@@ -224,7 +208,7 @@ function makeClassProvider(token: any): Provider {
   return {
     provide: token,
     useClass: token,
-    deps: [...(token['deps'] || [])],
+    deps: [...(token["deps"] || [])],
   };
 }
 
@@ -234,8 +218,7 @@ function makeClassProvider(token: any): Provider {
  */
 function mergeProviders(current: Provider[], updated: Provider[]): Provider[] {
   const extractToken = (it: Provider) => it.provide;
-  const findByToken = (token: Token) =>
-    allEntries.find((it) => it.provide === token);
+  const findByToken = (token: Token) => allEntries.find(it => it.provide === token);
   const allEntries = [...updated, ...current];
   const allTokens = new Set(allEntries.map(extractToken));
 
@@ -249,7 +232,6 @@ function mergeProviders(current: Provider[], updated: Provider[]): Provider[] {
 
 function __doSpread(...params: any[]) {
   for (var s = 0, i = 0, il = params.length; i < il; i++) s += params[i].length;
-  for (var r = Array(s), k = 0, i = 0; i < il; i++)
-    for (let a = params[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+  for (var r = Array(s), k = 0, i = 0; i < il; i++) for (let a = params[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
   return r;
 }
