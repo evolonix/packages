@@ -30,18 +30,26 @@ export type SyncOptions = {
   keys: MappingKey[];
   serialize?: Partial<Record<StateKey, (value: any) => string | undefined>>;
   deserialize?: Partial<Record<UrlKey, (value: string) => any>>;
-  replace?: boolean;
 };
 
-type SyncWithUrl = <T, Mps extends [StoreMutatorIdentifier, unknown][] = [], Mcs extends [StoreMutatorIdentifier, unknown][] = []>(
+type SyncWithUrl = <
+  T,
+  Mps extends [StoreMutatorIdentifier, unknown][] = [],
+  Mcs extends [StoreMutatorIdentifier, unknown][] = [],
+>(
   options: SyncOptions,
-  f: StateCreator<T, Mps, Mcs>
+  f: StateCreator<T, Mps, Mcs>,
 ) => StateCreator<T, Mps, Mcs>;
 
-type SyncWithUrlImpl = <T>(options: SyncOptions, f: StateCreator<T, [], []>) => StateCreator<T, [], []>;
+type SyncWithUrlImpl = <T>(
+  options: SyncOptions,
+  f: StateCreator<T, [], []>,
+) => StateCreator<T, [], []>;
 
 function getNestedValue(obj: any, path: string): any {
-  return path.includes('.') ? path.split('.').reduce((o, p) => o?.[p], obj) : obj[path];
+  return path.includes('.')
+    ? path.split('.').reduce((o, p) => o?.[p], obj)
+    : obj[path];
 }
 
 function setNestedValue(obj: any, path: string, value: any): void {
@@ -99,12 +107,11 @@ const syncWithUrlImpl: SyncWithUrlImpl = (options, f) => (set, get, store) => {
       }
     }
 
-    const newUrl = searchParams.size > 0 ? `${window.location.pathname}?${searchParams}` : window.location.pathname;
-    if (options.replace) {
-      window.history.replaceState({}, '', newUrl);
-    } else {
-      window.history.pushState({}, '', newUrl);
-    }
+    const newUrl =
+      searchParams.size > 0
+        ? `${window.location.pathname}?${searchParams}`
+        : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
   };
 
   store.setState = setWithSyncedUrl;
