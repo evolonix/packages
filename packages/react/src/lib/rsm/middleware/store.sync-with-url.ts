@@ -29,7 +29,7 @@ function assertUniqueKeys(items: MappingKey[]): void {
 export type SyncOptions = {
   keys: MappingKey[];
   serialize?: Partial<Record<StateKey, (value: any) => string | undefined>>;
-  deserialize?: Partial<Record<UrlKey, (value: string) => any>>;
+  deserialize?: Partial<Record<UrlKey, (value?: string) => any>>;
 };
 
 type SyncWithUrl = <
@@ -70,11 +70,9 @@ const syncWithUrlImpl: SyncWithUrlImpl = (options, f) => (set, get, store) => {
     for (const key of options.keys) {
       const stateKey = typeof key === 'string' ? key : key.stateKey;
       const urlKey = typeof key === 'string' ? key : key.urlKey;
-      const raw = searchParams.get(urlKey);
-      if (raw !== null) {
-        const deserialize = options.deserialize?.[urlKey];
-        setNestedValue(state, stateKey, deserialize ? deserialize(raw) : raw);
-      }
+      const raw = searchParams.get(urlKey) ?? undefined;
+      const deserialize = options.deserialize?.[urlKey];
+      setNestedValue(state, stateKey, deserialize ? deserialize(raw) : raw);
     }
 
     set(state);
@@ -86,7 +84,6 @@ const syncWithUrlImpl: SyncWithUrlImpl = (options, f) => (set, get, store) => {
     set(...(a as Parameters<typeof set>));
 
     const state = get();
-
     const searchParams = new URLSearchParams(window.location.search);
     for (const key of options.keys) {
       const stateKey = typeof key === 'string' ? key : key.stateKey;
@@ -108,10 +105,13 @@ const syncWithUrlImpl: SyncWithUrlImpl = (options, f) => (set, get, store) => {
     }
 
     const newUrl =
-      searchParams.size > 0
+      window.location.origin +
+      (searchParams.size > 0
         ? `${window.location.pathname}?${searchParams}`
-        : window.location.pathname;
-    window.history.replaceState({}, '', newUrl);
+        : window.location.pathname);
+
+    const currentUrl = window.location.href;
+    if (newUrl !== currentUrl) window.history.pushState({}, '', newUrl);
   };
 
   store.setState = setWithSyncedUrl;
