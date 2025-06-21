@@ -100,12 +100,13 @@ export function trackStatusWith<T extends StoreState>({
       set(updateRequestStatus<T>('pending'));
 
       // Introduce a delay for loading a minimum amount of time
-      // if (get().showSkeleton)
-      await new Promise((resolve) => setTimeout(resolve, minimumWaitTime));
+      const delay = new Promise((resolve) =>
+        setTimeout(resolve, minimumWaitTime),
+      );
 
       try {
         // Trigger async action
-        const updates = await action();
+        const [updates] = await Promise.all([action(), delay]);
         // Update status
         const hasErrors = updates.errors && updates.errors.length > 0;
         const withUpdatedRequestStatus = updateRequestStatus<T>(
