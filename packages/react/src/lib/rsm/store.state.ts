@@ -100,8 +100,8 @@ export function trackStatusWith<T extends StoreState>({
       set(updateRequestStatus<T>('pending'));
 
       // Introduce a delay for loading a minimum amount of time
-      if (get().showSkeleton)
-        await new Promise((resolve) => setTimeout(resolve, minimumWaitTime));
+      // if (get().showSkeleton)
+      await new Promise((resolve) => setTimeout(resolve, minimumWaitTime));
 
       try {
         // Trigger async action
